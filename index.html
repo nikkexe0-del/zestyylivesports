@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sportlink | Cricket Dashboard</title>
+    <meta name="description" content="Access live cricket channels with Sportlink's premium streaming dashboard.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff3c3c;
+            --bg: #0a0a0a;
+            --surface: #1a1a1a;
+            --text: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.6);
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Outfit', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* ── Particle canvas ── */
+        #particles {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── Header ── */
+        header {
+            padding: 2rem 1rem;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #ffffff, #ff3c3c);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            /* title pop-in */
+            animation: titleDrop 0.7s cubic-bezier(0.22,1,0.36,1) both;
+        }
+
+        @keyframes titleDrop {
+            from { opacity: 0; transform: translateY(-20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* pulsing dot on the logo */
+        h1::after {
+            content: '';
+            display: inline-block;
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #ff3c3c;
+            margin-left: 6px;
+            vertical-align: middle;
+            animation: livePulse 1.6s ease-in-out infinite;
+            -webkit-text-fill-color: #ff3c3c;
+        }
+
+        @keyframes livePulse {
+            0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0 rgba(255,60,60,0.6); }
+            50%       { transform: scale(1.3); opacity: 0.8; box-shadow: 0 0 0 6px rgba(255,60,60,0); }
+        }
+
+        .search-container {
+            max-width: 600px;
+            margin: 1.5rem auto 0;
+            position: relative;
+            animation: fadeUp 0.6s 0.2s both;
+        }
+
+        #search {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border-radius: 50px;
+            background: var(--surface);
+            border: 1px solid var(--glass-border);
+            color: white;
+            font-family: inherit;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        #search:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 22px rgba(255, 60, 60, 0.25);
+            transform: translateY(-2px);
+        }
+
+        /* ── Grid ── */
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .channel-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* ── Cards ── */
+        .channel-card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border: 1px solid var(--glass-border);
+            aspect-ratio: 1/1;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+
+            /* entrance animation — overridden per-card in JS */
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+            transition:
+                transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275),
+                border-color 0.3s,
+                background 0.3s,
+                box-shadow 0.3s,
+                opacity 0.4s ease;
+        }
+
+        .channel-card.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* shimmer sweep */
+        .channel-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.07) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.55s ease;
+        }
+
+        .channel-card:hover::before { transform: translateX(100%); }
+
+        /* glow ring */
+        .channel-card::after {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 20px;
+            background: transparent;
+            border: 1px solid transparent;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .channel-card:hover {
+            transform: translateY(-10px) scale(1.05) !important;
+            border-color: var(--primary);
+            background: rgba(255, 60, 60, 0.06);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 30px rgba(255,60,60,0.1);
+        }
+
+        .channel-card:active { transform: translateY(-6px) scale(1.02) !important; }
+
+        /* exit animation for filtered-out cards */
+        .channel-card.hide {
+            opacity: 0;
+            transform: scale(0.9) translateY(10px);
+            pointer-events: none;
+        }
+
+        .icon-box {
+            width: 60px; height: 60px;
+            background: var(--glass);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            border: 1px solid var(--glass-border);
+            transition: transform 0.3s, background 0.3s;
+        }
+
+        .channel-card:hover .icon-box {
+            transform: scale(1.15) rotate(-4deg);
+            background: rgba(255,60,60,0.12);
+        }
+
+        .channel-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            line-height: 1.3;
+            color: var(--text);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* ── Skeleton ── */
+        .skeleton {
+            background: var(--surface);
+            animation: pulse 1.5s infinite ease-in-out;
+            opacity: 1 !important;
+            transform: none !important;
+        }
+
+        @keyframes pulse {
+            0%   { opacity: 0.5; }
+            50%  { opacity: 0.9; }
+            100% { opacity: 0.5; }
+        }
+
+        /* ── Empty state ── */
+        .empty-state {
+            grid-column: 1/-1;
+            text-align: center;
+            padding: 4rem 1rem;
+            color: var(--text-dim);
+            animation: fadeUp 0.4s both;
+        }
+
+        .empty-state span {
+            display: block;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            animation: shake 0.5s ease both;
+        }
+
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            25%      { transform: translateX(-8px); }
+            75%      { transform: translateX(8px); }
+        }
+
+        /* ── Shared keyframes ── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        footer {
+            text-align: center;
+            padding: 4rem 1rem;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 1.8rem; }
+            .channel-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; }
+            .channel-card { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="particles"></canvas>
+
+    <header>
+        <h1>Sportlink</h1>
+        <div class="search-container">
+            <input type="text" id="search" placeholder="Search Cricket Channels..." autocomplete="off">
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="channel-grid" id="grid">
+            <div class="channel-card skeleton"></div>
+            <div class="channel-card skeleton"></div>
+            <div class="channel-card skeleton"></div>
+            <div class="channel-card skeleton"></div>
+            <div class="channel-card skeleton"></div>
+            <div class="channel-card skeleton"></div>
+            <div class="channel-card skeleton"></div>
+            <div class="channel-card skeleton"></div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Sportlink Premium. All rights reserved.</p>
+    </footer>
+
+    <script>
+    /* ═══════════════════════════════════
+       PARTICLE BACKGROUND
+    ═══════════════════════════════════ */
+    (function () {
+        const canvas = document.getElementById('particles');
+        const ctx = canvas.getContext('2d');
+        let W, H, dots;
+
+        function resize() {
+            W = canvas.width  = window.innerWidth;
+            H = canvas.height = window.innerHeight;
+        }
+
+        function mkDot() {
+            return {
+                x: Math.random() * W,
+                y: Math.random() * H,
+                r: Math.random() * 1.5 + 0.4,
+                vx: (Math.random() - 0.5) * 0.25,
+                vy: (Math.random() - 0.5) * 0.25,
+                alpha: Math.random() * 0.35 + 0.05
+            };
+        }
+
+        function init() {
+            resize();
+            dots = Array.from({ length: 90 }, mkDot);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, W, H);
+            dots.forEach(d => {
+                d.x += d.vx;
+                d.y += d.vy;
+                if (d.x < 0) d.x = W;
+                if (d.x > W) d.x = 0;
+                if (d.y < 0) d.y = H;
+                if (d.y > H) d.y = 0;
+                ctx.beginPath();
+                ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255,60,60,${d.alpha})`;
+                ctx.fill();
+            });
+            /* draw faint lines between close dots */
+            for (let i = 0; i < dots.length; i++) {
+                for (let j = i + 1; j < dots.length; j++) {
+                    const dx = dots[i].x - dots[j].x;
+                    const dy = dots[i].y - dots[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 90) {
+                        ctx.beginPath();
+                        ctx.moveTo(dots[i].x, dots[i].y);
+                        ctx.lineTo(dots[j].x, dots[j].y);
+                        ctx.strokeStyle = `rgba(255,60,60,${0.06 * (1 - dist / 90)})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(draw);
+        }
+
+        window.addEventListener('resize', resize);
+        init();
+        draw();
+    })();
+
+
+    /* ═══════════════════════════════════
+       TILT EFFECT ON MOUSE MOVE
+    ═══════════════════════════════════ */
+    document.addEventListener('mousemove', (e) => {
+        document.querySelectorAll('.channel-card:not(.skeleton)').forEach(card => {
+            const rect = card.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top  + rect.height / 2;
+            const dx = (e.clientX - cx) / (rect.width  / 2);
+            const dy = (e.clientY - cy) / (rect.height / 2);
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 1.8) {
+                card.style.transform = `translateY(-10px) scale(1.05) rotateX(${-dy * 5}deg) rotateY(${dx * 5}deg)`;
+            }
+        });
+    });
+
+
+    /* ═══════════════════════════════════
+       STAGGERED CARD ENTRANCE (IntersectionObserver)
+    ═══════════════════════════════════ */
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
+
+    function observeCards() {
+        document.querySelectorAll('.channel-card:not(.skeleton)').forEach((card, i) => {
+            card.style.transitionDelay = `${i * 50}ms`;
+            observer.observe(card);
+        });
+    }
+
+
+    /* ═══════════════════════════════════
+       RIPPLE ON CLICK
+    ═══════════════════════════════════ */
+    document.getElementById('grid').addEventListener('click', function (e) {
+        const card = e.target.closest('.channel-card');
+        if (!card || card.classList.contains('skeleton')) return;
+        const ripple = document.createElement('span');
+        const rect = card.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height) * 1.5;
+        ripple.style.cssText = `
+            position:absolute;
+            border-radius:50%;
+            width:${size}px; height:${size}px;
+            left:${e.clientX - rect.left - size/2}px;
+            top:${e.clientY - rect.top  - size/2}px;
+            background:rgba(255,60,60,0.18);
+            transform:scale(0);
+            animation:rippleAnim 0.55s ease-out forwards;
+            pointer-events:none;
+        `;
+        card.appendChild(ripple);
+        ripple.addEventListener('animationend', () => ripple.remove());
+    });
+
+    const styleTag = document.createElement('style');
+    styleTag.textContent = `
+        @keyframes rippleAnim {
+            to { transform: scale(1); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(styleTag);
+
+
+    /* ═══════════════════════════════════
+       SEARCH — animated filter
+    ═══════════════════════════════════ */
+    const grid   = document.getElementById('grid');
+    const search = document.getElementById('search');
+    let channelsData = [];
+    let searchTimeout;
+
+    search.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            const term = e.target.value.toLowerCase().trim();
+            const filtered = term
+                ? channelsData.filter(ch => ch.name.toLowerCase().includes(term))
+                : channelsData;
+            displayChannels(filtered);
+        }, 180);
+    });
+
+
+    /* ═══════════════════════════════════
+       RENDER
+    ═══════════════════════════════════ */
+    function displayChannels(list) {
+        grid.innerHTML = '';
+
+        if (list.length === 0) {
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <span>🏏</span>
+                    <p>No channels match your search.</p>
+                </div>`;
+            return;
+        }
+
+        list.forEach(ch => {
+            const card = document.createElement('a');
+            card.className = 'channel-card';
+            const fileName = ch.name.replace(/ /g, '_') + '.html';
+            card.href = 'Channel/' + fileName;
+
+            const acronym = ch.name.split(/[_ ]/).map(w => w[0] || '').join('').substring(0, 3).toUpperCase();
+            const iconHtml = ch.logo
+                ? `<img src="${ch.logo}" alt="${ch.name}" style="width:100%;height:60px;object-fit:contain;margin-bottom:1rem;border-radius:10px;">`
+                : `<div class="icon-box">${acronym}</div>`;
+
+            card.innerHTML = `${iconHtml}<div class="channel-name">${ch.name.replace(/_/g, ' ')}</div>`;
+
+            /* reset hover transform on mouse leave */
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = '';
+            });
+
+            grid.appendChild(card);
+        });
+
+        observeCards();
+    }
+
+
+    /* ═══════════════════════════════════
+       INIT
+    ═══════════════════════════════════ */
+    async function init() {
+        try {
+            const res = await fetch('Channel/channels.json');
+            channelsData = await res.json();
+            grid.innerHTML = '';
+            displayChannels(channelsData);
+        } catch (err) {
+            console.error('Error loading channels:', err);
+            grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--text-dim)">Failed to load channels. Make sure you generated them first.</p>';
+        }
+    }
+
+    init();
+    </script>
+</body>
+</html>
