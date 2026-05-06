@@ -3,116 +3,106 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Star Sports Select HD 2 BTS</title>
+<title>Star Sports Select HD 2 BTS | ZestyyMedia</title>
 <meta name="referrer" content="no-referrer">
 <script src="https://cdn.jsdelivr.net/npm/shaka-player@4.16.2/dist/shaka-player.ui.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shaka-player@4.16.2/dist/controls.css"/>
-
-    <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-FMP9REY96D"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-FMP9REY96D');
-</script>
-  <style>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#ff3c3c;
+  --border:rgba(255,255,255,0.08);
+  --footer-h:72px;
+}
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;background:#000;overflow:hidden;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+html,body{width:100%;height:100%;background:#000;overflow:hidden;font-family:'Inter',sans-serif}
+
+/* kill shaka spinner dot */
+.shaka-spinner-container,.shaka-spinner{display:none!important}
 
 .shaka-video-container{
-position:fixed;
-inset:0;
-background:#000;
-display:flex;
-align-items:center;
-justify-content:center;
+  position:fixed;
+  inset:0 0 var(--footer-h) 0;
+  background:#000;
+  display:flex;align-items:center;justify-content:center;
+}
+video{width:100%;height:100%;object-fit:contain;background:#000;}
+
+/* watermark */
+.zesty-watermark{
+  position:absolute;
+  top:50%;right:5%;
+  transform:translateY(-50%);
+  z-index:40;pointer-events:none;
+  font-size:11px;font-weight:700;letter-spacing:3px;
+  color:rgba(255,255,255,0.12);text-transform:uppercase;
+  writing-mode:vertical-rl;text-orientation:mixed;
 }
 
-video{
-width:100%;
-height:100%;
-object-fit:contain;
-background:#000;
-}
-
-.custom-watermark{
-position:absolute;
-z-index:40;
-pointer-events:none;
-top:65%;
-left:6%;
-transform:translateY(-50%);
-font-size:11px;
-font-weight:600;
-color:rgba(255,255,255,0.12);
-}
-
-/* --- Updated Modern Blocker Styles --- */
+/* block overlay */
 .block-overlay{
-position:fixed;
-inset:0;
-z-index:99999;
-display:flex;
-align-items:center;
-justify-content:center;
-background:radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
-text-align:center;
+  position:fixed;inset:0;z-index:99999;
+  display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at center,#111 0%,#000 100%);
+  text-align:center;
 }
-
 .block-box{
-padding:40px;
-max-width:500px;
-width:90%;
-background:rgba(20, 20, 20, 0.95);
-border-radius:16px;
-border:1px solid rgba(255, 255, 255, 0.1);
-box-shadow:0 20px 50px rgba(0,0,0,0.5);
-animation: fadeInUp 0.6s ease-out;
+  padding:40px;max-width:480px;width:90%;
+  background:#0d0d0d;border-radius:16px;
+  border:1px solid var(--border);
+  box-shadow:0 24px 60px rgba(0,0,0,0.6);
+  animation:fadeInUp 0.6s ease-out;
 }
+@keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.block-title{font-size:28px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:-0.5px;margin-bottom:12px;text-shadow:0 0 10px rgba(255,0,0,0.3);}
+.block-sub{font-size:13px;font-weight:500;color:rgba(255,255,255,0.5);line-height:1.7;}
+.block-icon,.block-note{display:none}
 
-@keyframes fadeInUp {
-from { opacity: 0; transform: translateY(30px); }
-to { opacity: 1; transform: translateY(0); }
+/* footer */
+.zesty-footer{
+  position:fixed;bottom:0;left:0;right:0;
+  height:var(--footer-h);
+  background:#0a0a0a;border-top:1px solid var(--border);
+  display:flex;align-items:center;padding:0 18px;gap:10px;z-index:200;
 }
-
-.block-title{
-font-size:42px;
-font-weight:800;
-color:#ffffff;
-text-transform:uppercase;
-letter-spacing:2px;
-margin-bottom:20px;
-text-shadow:0 0 10px rgba(255, 0, 0, 0.3);
+.footer-brand{display:flex;align-items:center;gap:8px;margin-right:4px;flex-shrink:0;}
+.footer-brand-name{font-size:12px;font-weight:700;color:#fff;letter-spacing:0.5px;}
+.footer-brand-dot{width:4px;height:4px;border-radius:2px;background:var(--primary);flex-shrink:0;}
+.footer-divider{width:1px;height:32px;background:var(--border);flex-shrink:0;}
+.footer-bento{display:flex;align-items:center;gap:8px;flex:1;}
+.footer-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:0 13px;height:36px;border-radius:10px;
+  border:1px solid var(--border);background:rgba(255,255,255,0.03);
+  font-size:11px;font-weight:500;color:rgba(255,255,255,0.55);
+  white-space:nowrap;flex-shrink:0;
 }
-
-.block-sub{
-font-size:14px;
-font-weight:500;
-color:rgba(255, 255, 255, 0.6);
-line-height:1.6;
+.footer-pill .pill-label{font-weight:600;color:rgba(255,255,255,0.9);}
+.footer-link{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:0 13px;height:36px;border-radius:10px;
+  border:1px solid var(--border);background:rgba(255,255,255,0.03);
+  font-size:11px;font-weight:500;color:rgba(255,255,255,0.55);
+  text-decoration:none;white-space:nowrap;flex-shrink:0;transition:all 0.2s;
 }
-
-/* Icon hidden as requested, but keeping structure if needed later */
-.block-icon{ display: none; }
-.block-note{ display: none; }
+.footer-link:hover{background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.18);color:#fff;}
+.footer-link .pill-label{font-weight:600;color:rgba(255,255,255,0.9);}
+.footer-link svg{flex-shrink:0;opacity:0.6;}
 
 @media(max-width:700px){
-.custom-watermark{font-size:9px;top:60%;left:16%}
-.block-title{font-size:28px}
-.block-box{padding:25px}
-.block-sub{font-size:12px}
+  :root{--footer-h:60px;}
+  .footer-pill:nth-child(n+3){display:none;}
+  .footer-brand-name{font-size:11px;}
+  .block-title{font-size:22px}.block-box{padding:25px}.block-sub{font-size:12px}
 }
 </style>
-    
 </head>
-    
+
 <body>
 
 <div class="shaka-video-container" id="player-container">
 <video id="video" autoplay muted playsinline preload="metadata"></video>
-<div class="custom-watermark"> </div>
+<div class="zesty-watermark">ZESTYYMEDIA</div>
 </div>
 
 <script>
@@ -256,7 +246,24 @@ line-height:1.6;
   });
 })();
 </script>
-  <script>(function(s){s.dataset.zone='10603308',s.src='https://bvtpk.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
-  
+  <footer class="zesty-footer">
+    <div class="footer-brand">
+      <span class="footer-brand-name">ZestyyMedia</span>
+      <div class="footer-brand-dot"></div>
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-bento">
+      <div class="footer-pill">Dev <span class="pill-label">Nikshep Doggalli</span></div>
+      <a href="https://instagram.com/nikkk.exe" target="_blank" class="footer-link">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        <span class="pill-label">nikkk.exe</span>
+      </a>
+      <a href="https://zestyyflix.vercel.app" target="_blank" class="footer-link">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        More from ZestyyTeam
+      </a>
+    </div>
+  </footer>
+
 </body>
 </html>
